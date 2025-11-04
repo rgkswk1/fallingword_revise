@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>영단어 낙하 타자 게임</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Press Start 2P', cursive;
+  background: radial-gradient(circle at center, #050014 0%, #000010 100%);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  overflow: hidden;
+}
+body, button, input, .word, .popup, #scoreDisplay, #timerDisplay { font-family: 'Press Start 2P'; }
+
+
+/* 메인 메뉴 */
+#mainMenu {
+  width: 60%;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+  text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff, 0 0 30px #ffff66;
+  border: 4px solid #00ffff;
+  border-radius: 0;
+  background: linear-gradient(to bottom, #030018, #001030);
+  box-shadow: 0 0 25px #00ffff, inset 0 0 10px #002040;
+}
+
+/* 기본 버튼: 각진 네온 스타일 */
+button {
+  width: 260px;
+  padding: 16px;
+  font-size: 20px;
+  color: #fff;
+  background: #0a0a1a;
+  border: 3px solid #00ffff;
+  border-radius: 0;
+  box-shadow: 0 0 10px #00ffff, inset 0 0 10px #001030;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+button:hover {
+  background: #111133;
+  border-color: #ff00ff;
+  box-shadow: 0 0 15px #ff00ff, 0 0 25px #ffff66;
+  color: #ffff66;
+}
+
+/* 게임화면 */
+#gameContainer {
+  display: none;
+  position: relative;
+  width: 60%;
+  height: 80vh;
+  border: 4px solid #00ffff;
+  border-radius: 0;
+  background: linear-gradient(to bottom, #030018, #001030);
+  box-shadow: 0 0 25px #00ffff, inset 0 0 10px #002040;
+  overflow: hidden;
+}
+
+/* 상단 UI */
+#topUI {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  text-shadow: 0 0 8px #00ffff, 0 0 12px #ff00ff;
+  color: #ffff99;
+}
+
+#scoreDisplay, #timerDisplay {
+  font-size: 18px;
+  border: 2px solid #00ffff;
+  padding: 6px 12px;
+  background: rgba(0, 0, 20, 0.6);
+  border-radius: 6px;
+  box-shadow: 0 0 10px #00ffff, inset 0 0 5px #001030;
+}
+
+#pauseBtn {
+  background: #2a002a;
+  border: 3px solid #ff00aa;
+  width: 120px;
+  border-radius: 0;
+  color: #fff;
+  text-shadow: 0 0 8px #ff00ff;
+}
+
+#pauseBtn:hover {
+  background: #400040;
+  border-color: #ffff66;
+  box-shadow: 0 0 15px #ffff66;
+}
+
+/* 떨어지는 단어 */
+.word {
+  position: absolute;
+  font-size: 20px;
+  color: #fff;
+  text-shadow: 0 0 6px #00ffff, 0 0 10px #ff00ff, 0 0 14px #ffff66;
+}
+
+/* 입력창 */
+#inputContainer {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+#wordInput {
+  width: 60%;
+  padding: 10px;
+  font-size: 20px;
+  font-family: 'Press Start 2P', cursive;
+  border: 3px solid #00ffff;
+  border-radius: 0;
+  background: #0a0a20;
+  color: #ffff99;
+  outline: none;
+  box-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff inset;
+}
+
+/* 경계선 */
+#deleteLine {
+  position: absolute;
+  bottom: 70px;
+  width: 100%;
+  height: 2px;
+  background-color: #ff00ff;
+  box-shadow: 0 0 10px #ff00ff;
+  z-index: 5;
+  opacity: 0.7;
+}
+
+#startLine {
+  position: absolute;
+  top: 80px;
+  width: 100%;
+  height: 2px;
+  background-color: #00ffff;
+  box-shadow: 0 0 10px #00ffff;
+  opacity: 0.6;
+  z-index: 5;
+}
+
+/* 팝업 */
+.popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #0c0020;
+  border: 3px solid #ff00ff;
+  border-radius: 0;
+  padding: 25px;
+  text-align: center;
+  z-index: 100;
+  box-shadow: 0 0 20px #ff00ff, inset 0 0 10px #00ffff;
+  color: #ffff99;
+  text-shadow: 0 0 8px #ff00ff;
+}
+
+.popup button {
+  margin: 10px;
+  border: 3px solid #00ffff;
+  background: #100020;
+  color: #ffffcc;
+  border-radius: 0;
+  box-shadow: 0 0 10px #00ffff;
+}
+
+.popup button:hover {
+  border-color: #ff00ff;
+  box-shadow: 0 0 15px #ff00ff;
+  color: #ffff66;
+}
+
+#wordInput:disabled {
+  background-color: #222;
+  color: #666;
+}
+</style>
+</head>
+<body>
+  <!-- 메인 메뉴 -->
+  <div id="mainMenu">
+    <button id="easyBtn">Easy</button>
+    <button id="normalBtn">Normal</button>
+    <button id="hardBtn">Hard</button>
+    <button id="exitBtn">Exit</button>
+  </div>
+
+  <!-- 게임 화면 -->
+  <div id="gameContainer">
+       <div id="topUI">
+      <div id="scoreDisplay">Score: 0</div>
+      <div id="timerDisplay">Remaining time: 20s</div>
+      <button id="pauseBtn">Pause</button>
+    </div>
+
+    <!-- 단어 시작 위치 표시용 경계선 -->
+    <div id="startLine"></div>
+
+    <!-- 삭제 경계선 -->
+    <div id="deleteLine"></div>
+
+    <div id="inputContainer">
+      <input type="text" id="wordInput" placeholder="Input word..." autofocus />
+    </div>
+  </div>
+
+  <!-- 팝업 -->
+  <div id="pausePopup" class="popup" style="display:none;">
+    <h2>Pause</h2>
+    <button id="resumeBtn">Resume</button>
+    <button id="pauseMainBtn">Main menu</button>
+  </div>
+
+  <div id="endPopup" class="popup" style="display:none;">
+    <h2>⏰ Game Over!</h2>
+    <p id="finalScore"></p>
+    <button id="restartBtn">Restart</button>
+    <button id="endMainBtn">Main Menu</button>
+  </div>
+
+<script>
+/* ✅ 원본 JS 그대로 유지 */
+const mainMenu = document.getElementById("mainMenu");
+const gameContainer = document.getElementById("gameContainer");
+const wordInput = document.getElementById("wordInput");
+const pauseBtn = document.getElementById("pauseBtn");
+const pausePopup = document.getElementById("pausePopup");
+const resumeBtn = document.getElementById("resumeBtn");
+const pauseMainBtn = document.getElementById("pauseMainBtn");
+const endPopup = document.getElementById("endPopup");
+const finalScore = document.getElementById("finalScore");
+const restartBtn = document.getElementById("restartBtn");
+const endMainBtn = document.getElementById("endMainBtn");
+const scoreDisplay = document.getElementById("scoreDisplay");
+const timerDisplay = document.getElementById("timerDisplay");
+const deleteLine = document.getElementById("deleteLine");
+
+let wordsEasy = [ "apple","banana","orange","grape","pear","dog","cat","fish","bird","rabbit", "book","pen","pencil","bag","desk","chair","bed","door","window","car", "bus","train","ship","plane","sun","moon","star","sky","rain","snow", "red","blue","green","yellow","black","white","pink","brown","gray","purple", "milk","bread","rice","egg","cake","water","juice","tea","coffee","soup", "mom","dad","sister","brother","grandma","grandpa","teacher","friend","boy","girl", "run","walk","jump","sing","dance","play","eat","drink","sleep","read", "write","draw","open","close","sit","stand","look","listen","smile","cry", "one","two","three","four","five","six","seven","eight","nine","ten", "happy","sad","hot","cold","big","small","fast","slow","long","short" ]; let wordsNormal = [ "student","teacher","subject","science","history","mathematics","language","village","forest","mountain", "river","ocean","city","country","family","society","culture","future","present","past", "travel","holiday","vacation","journey","ticket","station","airport","library","museum","university", "problem","solution","question","answer","example","reason","method","system","machine","technology", "energy","information","message","conversation","relationship","experience","memory","dream","idea","thought", "success","failure","effort","result","goal","plan","chance","change","choice","decision", "beautiful","wonderful","powerful","dangerous","serious","different","similar","common","important","popular", "imagine","prefer","believe","understand","remember","forget","explain","describe","create","develop", "protect","improve","increase","reduce","provide","include","contain","require","offer","prepare" ]; let wordsHard = [ "analyze","approach","assume","concept","context","data","define","establish","identify","interpret", "issue","method","policy","principle","process","research","response","role","section","structure", "theory","variable","achieve","acquire","administration","affect","appropriate","aspect","category","commission", "community","complex","computer","consequence","construction","consumer","credit","cultural","design","element", "feature","final","focus","impact","injury","journal","maintain","normal","participate","perceive", "positive","potential","previous","primary","purchase","region","relevant","resident","resource","select", "site","strategy","survey","tradition","transfer","alternative","circumstance","comment","component","consent", "considerable","constant","constraint","contribution","convention","coordinate","core","corporate","correspond","criteria", "deduce","demonstrate","document","emphasis","ensure","exclude","framework","illustrate","imply","initial" ];
+
+let words = [];
+let fallingWords = [];
+let fallSpeed = 6;
+let gameInterval, timerInterval, wordSpawnInterval;
+let score = 0;
+let remainingTime = 20;
+let isPaused = false;
+let currentDifficulty = "normal";
+
+function startGame(difficulty) {
+  currentDifficulty = difficulty;
+  if (difficulty === "easy") words = wordsEasy;
+  if (difficulty === "normal") words = wordsNormal;
+  if (difficulty === "hard") words = wordsHard;
+
+  mainMenu.style.display = "none";
+  gameContainer.style.display = "block";
+  score = 0;
+  remainingTime = 20;
+  scoreDisplay.textContent = "Score : 0";
+  timerDisplay.textContent = "Remaining Time: 20s";
+  fallingWords = [];
+  wordInput.value = "";
+  wordInput.disabled = false;
+  pausePopup.style.display = "none";
+  endPopup.style.display = "none";
+  isPaused = false;
+
+  if (difficulty === "easy") fallSpeed = 5;
+  if (difficulty === "normal") fallSpeed = 5;
+  if (difficulty === "hard") fallSpeed = 5;
+
+  clearInterval(gameInterval);
+  clearInterval(timerInterval);
+  clearInterval(wordSpawnInterval);
+
+  const startCount = Math.floor(Math.random() * 2) + 2;
+  for (let i = 0; i < startCount; i++) spawnWord();
+
+  wordSpawnInterval = setInterval(() => {
+    if (!isPaused) spawnWord();
+  }, 1000);
+
+  gameInterval = setInterval(gameLoop, 50);
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function gameLoop() {
+  if (isPaused) return;
+  const activeWords = document.querySelectorAll(".word");
+  const deleteLineY = gameContainer.offsetHeight - 70;
+
+  activeWords.forEach(word => {
+    let top = parseFloat(word.style.top);
+    word.style.top = (top + fallSpeed) + "px";
+    if (top + 20 >= deleteLineY) {
+      word.remove();
+      fallingWords = fallingWords.filter(w => w !== word);
+    }
+  });
+}
+
+function spawnWord() {
+  const word = document.createElement("div");
+  word.className = "word";
+  word.textContent = words[Math.floor(Math.random() * words.length)];
+
+  const maxAttempts = 100;
+  let leftPos;
+  let valid = false;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const rightMargin = 150;
+    leftPos = Math.random() * (gameContainer.offsetWidth - rightMargin);
+
+    valid = true;
+    for (const existing of fallingWords) {
+      const existingLeft = parseFloat(existing.style.left);
+      const existingTop = parseFloat(existing.style.top);
+      const horizontalGap = Math.abs(existingLeft - leftPos);
+      const verticalGap = Math.abs(existingTop - 60);
+      if (horizontalGap < 100 && verticalGap < 40) {
+        valid = false;
+        break;
+      }
+    }
+    if (valid) break;
+  }
+
+  if (!valid) return;
+
+  word.style.left = leftPos + "px";
+  word.style.top = "85px";
+  gameContainer.appendChild(word);
+  fallingWords.push(word);
+}
+
+function updateTimer() {
+  if (isPaused) return;
+  remainingTime--;
+  timerDisplay.textContent = `Remaining Time: ${remainingTime}s`;
+  if (remainingTime <= 0) endGame();
+}
+
+wordInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !isPaused) {
+    const input = wordInput.value.trim();
+    const matchedWord = fallingWords.find(w => w.textContent === input);
+    if (matchedWord) {
+      matchedWord.remove();
+      fallingWords = fallingWords.filter(w => w !== matchedWord);
+      score++;
+      scoreDisplay.textContent = `Score: ${score}`;
+    }
+    wordInput.value = "";
+  }
+});
+
+pauseBtn.addEventListener("click", () => {
+  isPaused = true;
+  wordInput.disabled = true;
+  pausePopup.style.display = "block";
+});
+
+resumeBtn.addEventListener("click", () => {
+  isPaused = false;
+  wordInput.disabled = false;
+  pausePopup.style.display = "none";
+});
+
+pauseMainBtn.addEventListener("click", returnToMain);
+endMainBtn.addEventListener("click", returnToMain);
+
+restartBtn.addEventListener("click", () => {
+  endPopup.style.display = "none";
+  startGame(currentDifficulty);
+});
+
+function endGame() {
+  clearInterval(gameInterval);
+  clearInterval(timerInterval);
+  clearInterval(wordSpawnInterval);
+  document.querySelectorAll(".word").forEach(w => w.remove());
+  finalScore.textContent = `Score: ${score}`;
+  endPopup.style.display = "block";
+}
+
+function returnToMain() {
+  clearInterval(gameInterval);
+  clearInterval(timerInterval);
+  clearInterval(wordSpawnInterval);
+  document.querySelectorAll(".word").forEach(w => w.remove());
+  gameContainer.style.display = "none";
+  pausePopup.style.display = "none";
+  endPopup.style.display = "none";
+  mainMenu.style.display = "flex";
+}
+
+document.getElementById("easyBtn").onclick = () => startGame("easy");
+document.getElementById("normalBtn").onclick = () => startGame("normal");
+document.getElementById("hardBtn").onclick = () => startGame("hard");
+
+document.getElementById("exitBtn").onclick = () => {
+  const confirmExit = confirm("Do you really want to exit?");
+  if (confirmExit) {
+
+    window.close();
+  }
+};
+</script>
+</body>
+</html>
